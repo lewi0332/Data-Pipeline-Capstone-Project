@@ -218,6 +218,13 @@ if __name__ == "__main__":
 
     # TODO
     # write a logic to submit to redshift
+    # df.write \
+    # .format(“com.databricks.spark.redshift”) \
+    # .option(“url”, “jdbc:url/dbname?user=username&password=somepassword”) \
+    # .option(“dbtable”, “schema.tablename”) \
+    # .option(“tempdir”, “s3n://sparkpoc/temp/”) \
+    # .mode(“error”) \
+    # .save()
 
     # TODO
     # possibly figure out how to submit as an actual list or dict.
