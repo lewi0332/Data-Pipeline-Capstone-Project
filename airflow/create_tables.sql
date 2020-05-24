@@ -34,4 +34,5 @@ CREATE TABLE public.history
 	doc_count int,
 	fol_avg float,
 	eng_avg float,
+	color varchar(1024)
 );
