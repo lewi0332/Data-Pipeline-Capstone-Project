@@ -34,6 +34,14 @@ logger.setLevel(logging.INFO)
 
 
 def indexDocElement(es_Url, awsauth, docData):
+    """
+    Loads completed document to Elasticsearch index.
+
+    PARAMS:
+    es_url - Elasticsearch Url for PUT requests
+    awsauth - AWS credentials for Elasticsearch
+    docData - formated dict like object to update elasticsearch record. 
+    """
     try:
         headers = {"Content-Type": "application/json"}
         # headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
