@@ -18,7 +18,7 @@ default_args = {
     'email_on_retry': False,
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
-    'catchup': False,
+    'catchup': False
     # 'queue': 'bash_queue',
     # 'pool': 'backfill',
     # 'priority_weight': 10,
@@ -79,7 +79,6 @@ stage_aggregations_to_redshift = StageToRedshiftOperator(
     region="us-east-1",
     file_type="csv"
 )
-
 
 load_history_table = LoadFactOperator(
     task_id='Load_history_fact_table',
