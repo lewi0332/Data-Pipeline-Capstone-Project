@@ -6,9 +6,9 @@
 
 Build AWS Data Lake and Data Pipeline to Elasticsearch and Redshift with Apache Airflow and Spark
 
-The goal of this project to create a data pipeline for a social media ambassador agency. The agency connects prominent Instagram users to brands looking for ambassadors and product promotions. Brands looking for a user to work with will need to see aggregated data on each user about their social media following as well as the type of content the user typically creates. This data is the foundation of the agency's subscription-only brand facing website. Brands will use the site to search users and view their content.
+The goal of this project to create a data pipeline and data model for a social media ambassador agency. The agency connects prominent Instagram users to brands looking for ambassadors and product promotions. Brands looking for a user to work with will need to see aggregated data on each user about their social media following as well as the type of content the user typically creates. This data is the foundation of the agency's subscription-only brand facing website. Brands will use the site to search users and view their content.
 
-Social Media users who sign up to be featured on the platform authorize the agency to collect data from two instagram endpoints, User data and Post data. User data must be updated regularly to keep up with changing user profiles. Total follower counts, profile images and locations are important to brands looking for a IG user. Data on individual posts are collected in order for brands to search for users who might typcially speak about their particular subject matter (cooking, travel, makeup, etc) and find that users average follower engagement to compare with others. Data on individual posts grows quickly and it also changes drastically in the first days after creation ("likes" count grows drastically in the first few days). It too must be created and updated regulary. 
+Social Media users who sign up to be featured on the platform authorize the agency to collect data from two instagram endpoints, User Insights data and Media Insights data (further referred to as post data). User data must be updated regularly to keep up with changing user profiles. Total follower counts, profile images and locations are important to brands looking for a Instagram ambassador. Data on individual posts are collected in order for brands to search for users who might typcially speak about their particular subject matter (cooking, travel, makeup, etc) and find that users average follower engagement to compare with others. Data on individual posts grows quickly and it also changes drastically in the first days after creation ("likes" count grows drastically in the first few days). It too must be created and updated regulary. 
 
 Finally, to set this agency apart, we will augment the data with two custom machine learning algorithms to better classify each user.  The first is a 
 Instagram specific image classification in Tensorflow. This model makes a prediction about the image content in one of 33 categories specific to social media. Finally, certain fashion brand marketers are often looking for specific color palettes when partnering with a content creator. We will augment the data with a K-means algorithm to determine 6 cluster centers of all recent photos combined to create an user color pallete over all of their images. These image augmentations will be used in a future recommender system to help brands find even more users. 
@@ -18,25 +18,25 @@ The agency is growing rapidally and will need a robust way to handle more data. 
 --- 
 ## Data Exploration 
 
-The company has built an API client which will store a single json file labeled with the post id under a folder for each user id. The api client runs once daily and is given a response from Instagram on the last 33 posts from each account. For any posts new to the datalake, a new json file will be created. The remaining responses from the API call will *update* previous files. Additionally, the API Client will return and store data from a 'users' endpoint with data particular to each account.  
+The company has built an API client which will store a single json file for each post labeled with the post id under a folder for each user id. The api client runs once daily and is given a response from Instagram on the last 25 posts from each account. For any posts new to the datalake, a new json file will be created. The remaining responses from the API call will *update* previous files. Additionally, the API Client will return and store data from a 'users' endpoint with data particular to each account.  
  
-### MEDIA TYPE x CONNECTION TYPE
+### 5 Media Types x 2 Connection Types
 
 To add some complexity to this data, the company has two different relationships with it's users. Typical users on the platform are connected via a "Basic" api. This authoriztion allows for the company to see *some* data on the account relavent to the performance such as the count of likes and comments. However, Users who are working through the company on a specific paid campaign with a brand are allowed to connect their "Business" api. This endpoint returns more data such as "reach" and "impressions".
 
-### VOLUME
+### Volume
 
-Currently there are about 50,000 users on the platform producing ~0.5 posts per day. The company is increasing it's marketing efforts to grow their user base to 500K or more. 
+Currently the company would like to process 50,000 users on the platform each producing ~0.5 posts per day. However, an expandable solution is needed with an option to increase it's user base to 500K or more. 
 
-Thus each day the pipeline should consume 25k JSON and image files with a potential growth to 250k. 
+Thus, each day the pipeline should consume 25k JSON and image files with a potential growth to 250k. 
 
 ### A Repeat Process 
 
-The nature of data is that it will be *updated*. This is an important consideration in the pipeline. A json with the specifics of the post be created within the first day of it being published to Instagram. However the API client must go back and reload the data again and again to update the post metrics with more likes, comments, reach and impressions happening. 
+The nature of data is that it will be *updated*. This is an important consideration in the pipeline. A json with the specifics of the post be created within the first day of it being published to Instagram. However the API client must go back and reload the data again and again to update the post metrics with recent likes, comments, reach and impressions happening. 
 
-Currently, the Instagram API returns the latest data on the most recent 33 posts for a user. The company's client will call each user's API reponse update the maximum amount each day.
+Currently, the Instagram API returns the latest data on the most recent 25 posts for a user. The company's client will call each user's API reponse update the recent 25 posts each day.
 
-The 33rd oldest post may have been last week for a prolific posting user or 6 months ago for a infrequent user. Each post may have slightly updated data and will need to be loaded.
+The 25th oldest post may have been last week for a prolific user or 6 months ago for a infrequent user. Each post may have slightly updated data and will need to be loaded.
 
 Our pipeline will need to handle more volume than the data suggests as the ETL process will likely be repeated many many times on JSON files of the same name. Thus, to save costs, the pipeline will need to be creatitive and efficient in how it finds only the updated posts. 
 
@@ -138,34 +138,35 @@ Sample business user data:
 ```
 
 
-**Initial Considerartions**
+**Initial Data Considerations**
 
-Compared to many projects, this data is very clean and tidy. The API is stable and produces constrained data. However, with so many sources and types, it can be tricky to make it all fit into the site in the same manner. 
+Compared to many projects, this data is very clean and tidy. The API is stable and produces constrained data. However, with so many sources and types, it can be tricky to make it all fit into the same model in the same manner. 
 
-There are some lines with nested data which will need to be flattened. 
+There are some keys in post and user json files with nested data which will need to be flattened. 
 
-Follower count is listed in users, but *not always* in post. Posts from Business Connections will return follower counts on a given post near the time of posting. For some purposes the pipeline will need to bring these sources together.
+Follower count is listed in users, but *not always* in posts. Posts from Business Connections will return follower counts on a given post near the time of posting. For some purposes the pipeline will need to bring these sources together.
 
 Post and User data from the Basic connection will be missing Reach, Impressions and other metrics. The company is aware of this and expects data to be null from these users
 
 --- 
 ## Data Model
 
-The company website would like to allow brands to search posts for keywords, mentions, and hashtags. It will also present those results with the corresponding media. Only posts going back 180 days will be needed for search.  
+The company website would like to allow brands to search posts for keywords, mentions, and hashtags. It will also present those results with the corresponding media object. Only posts going back 180 days will be needed for search.  
 
-Additionally, each IG user will be represented with a single page showing historical stats and recent posts. 
+Additionally, each IG user will be represented with a single profile page showing historical stats and recent posts. 
 
-We will need a transactional search endpoint for the website to use as well as a pre-aggregated Fact table to populate each user page. 
+The website requires a transactional search endpoint for the website to use as well as a pre-aggregated Fact table to populate each user page. 
 
-The company already spent considerable time on configuring search results with Elasticsearch and would like to continue to use this tool 
+The company has spent considerable time on configuring search results with Elasticsearch and would like to continue to use this tool. Elasticsearch allows the flexibilty of an adjustable schema given that our data responses from the Instagram API differ. Elasticsearch is a distributed system which allows for replicas. 
 
-Proposed Pipeline
+**Proposed Pipeline**
 
 ![data_pipeline_flowchart](./images/map.jpeg)
 
-The model design will begin with a data lake in an AWS S3 bucket and transform the data to a transactional state for the website to call quickly. As the company grows this data lake will support higher volume data ingestion and leave the flexibility of future analytics. All data features from the Instagram API can be stored in S3 even if they may not be relevent now. Users and posts will be stored separately. File names will connect to their account id, post id or date.  This will allow for easy schema reads from services such as AWS Glue in future use cases. 
+The pipeline design will begin with a data lake in an AWS S3 bucket and will transform the data to a transactional state for the website to call quickly. As the company grows this data lake will support higher volume data ingestion and leave flexibility for future analytics. All data features from the Instagram API can be stored in S3 even if they may not be relevent now. Users and posts will be stored separately. File names will connect to their account id, post id or date.  This will allow for easy schema reads from services such as AWS Glue in future use cases. 
 
-Data Lake Heirarchy
+**Data Lake Heirarchy**
+
 ```
 -instagram_graph
     --posts
@@ -181,14 +182,11 @@ Data Lake Heirarchy
 
 **Endpoint**
 
-Only 6 months worth of data will need to live in the more expensive transactional data store, Elasticsearch. Therefore, this model will transform current data and where possible use only this time window from the data lake. This will reduce costs for the company and speed queries on the smaller database. 
+Only 6 months worth of data will need to be stored in the more expensive transactional data store, Elasticsearch. Therefore, this model will transform current data and where possible use only this time window from the data lake. This will reduce costs for the company and speed queries on the smaller database. 
 
 ### **AWS Lambda** - 
 
-The data lake will quickly grow to a volume which requires a lot of hardware to perform a traditional ETL. Given that we only need 6 months of data to transform, rather than extract all data in our data lake only to filter out the last 6 months, this model will use Lambda Functions to process only the newest data to the transactional data store. 
-
-[Trying to extract only newest data from AWS s3 to use any other tool proved to be a non-trival challenge.]
-
+The data lake will quickly grow to a volume which requires a lot of hardware to perform a traditional ETL. Given that we only need 6 months of data to transform and that data must be updated daily, rather than extract all data in our data lake only to filter out the last 6 months, this model will use Lambda Functions to process only the newest data to the transactional data model. 
 
 AWS Lambda functions run on serverless architechture and can be run asyncronously at a large volume. Each data transformation runs in ~2 seconds and the company has access to 1,000 Lambda functions concurrently. While not the cheapest option, this could allow for nearly 40 million new posts to be ingested in a day, far more than the company will see in near future. 
 
@@ -219,13 +217,11 @@ This function -
 
 AWS triggered action on each PUT request. Primarily becuase each data point will be *updated* by the api client. Data is not static. Using another tool such as airflow did not have an ability to easily extract newly updated objects from the Data Lake. 
 
-
 ### **Airflow Daily**
 
-Each day the model uses airflow to update the user transactional data store for user profiles. This will help brands determine if the IG user is on a growth trajectory.
+Each day the pipeline uses airflow to update the transactional data store for user profiles. This will help brands determine if the IG user is on a growth trajectory.
 
-While Elasticsearch will be used to populate some data with most recent user stats, a portion of the page will need to present a profile history from data aggregated from sources other than the Elasticsearch DB already created.
-
+While Elasticsearch will be used to populate some data with most recent user stats, a portion of the page will need to present a profile history from data aggregated from sources other than the Elasticsearch DB.
 
 ![websample with sparklines](./images/history.png)
 
@@ -241,7 +237,7 @@ The website requires the following information:
 |fol_avg| float	|  3567.2   |
 |eng_avg*| float	|  255.2  |
 
-*This represents the average daily interations on posts, likes plus comments. Which is easily converted to the rate of engagement with the follower counts included.
+*This represents the average daily interactions (likes plus comments) on posts. Which is easily converted to the rate of engagement with the follower counts included.
 
 **social_system_dag**
 
@@ -253,22 +249,28 @@ This dag:
 - Stages an aggregation of post attributes from the last 30 days
 - loads the fact table with a combination of the sources
 
+![Graph view of Social System dag](./images/social_system_graph.png)
+![Tree view of Social System dag](./images/social_system_tree.png)
+
 ### **Airflow Weekly**
 
 Each week this model will add additional data augmentation to each profile. It will analyze the most recent images and determine a dominent color palette of the images in each user's social media feed. This will help brands to quickly see the tone and feel of the content the user creates.  
 
-Single image sample
+**Image Color Classification**
+
+Sample of color classification on a single image. 
+
 ![websample with sparklines](./images/color1.png)
 ![websample with sparklines](./images/color2.png)
 
 This step will prepare a list of json-like objects that the company site can parse and build into a display.
 
-The color data will be joined to the AWS REdshit fact table with each users profile aggregations for a single DB call for each page build.
+The color data will be joined to the AWS Redshit Fact table with each users profile aggregations for a single DB call for each page build.
 
 Needed in the response:
 
 | Data	| Type | Explanation |
-|---	|---	|---|
+|---	|---	|--- |
 |volume of color  | float | The percentage of all pixels which belong to this cluster|
 | - red composition | int | x coordinate of cluster center |
 | - blue composition | int | y coordinate of cluster center|
@@ -343,6 +345,13 @@ This function -
 
 *While Spakrk ML has a very convenient distributed Kmeans algorithm, the requirements of this task did not require Kmeans classification on a single data set too large for one machine. Instead, a Kmeans classification was needed on thousands of moderately sized data. Thus the normal Sklearn Kmeans worked well, but uses Spark's distributed nature to be performed asyncronously with a pandas UDF. 
 
+![Graph view of Color Classification dag](./images/image_dag_graph.png)
+![Tree view of Color Classification dag](./images/image_dag_tree.png)
+
+S3 Output to Parquet files. 200 files brokend by the default partition settings in Spark. 
+
+![S3 console view of spark output](./images/s3_color_store.png)
+
 --- 
 ## DATA Dictionary 
 
@@ -353,7 +362,7 @@ Listed below are augmented search results as a guide to working with the resulti
 
 Query:
 ```
-GET /instagram_graph_posts/_doc/9991?pretty
+GET /instagram_graph_posts/_doc/<post ID>?pretty
 ```
 Response:
 ```
@@ -371,9 +380,7 @@ Response:
     "content_type" : "application/json",
     "content_length" : "3563",
     "content" : {
-      "caption" : """shoes" 
-        #ReadingisRAD
-""",
+      "caption" : """shoes" #ReadingisRAD""",
       "comments_count" : 12, <- Number of comments made on this post>
       "id" : 9991, <- Instagram post id>
       "like_count" : 166, <- Number of likes on this post>
@@ -414,7 +421,7 @@ Response:
 
 Query:
 ```
-GET /instagram_graph_users/_doc/1?pretty
+GET /instagram_graph_users/_doc/<User ID>?pretty
 ```
 Response:
 ```
@@ -478,11 +485,24 @@ Response:
 |eng_avg| float	|  255.2  |
 | color | String | Sting object representing color palette of user|
 
+![Redshift data Sample](./images/redshift.png)
+
+
+
 --- 
+## Current Pipeline Performance 
 
-## Growth Considerations
+| 7241 test accounts | resources | time |
+|--- |--- |---|
+| Lambda Post Update       | 3-5K concurrent    | ~1558ms per post |
+| Lambda User Update       | 300 concurrent    | ~877ms per user |
+| CWeekly Airflow Color Classification Spark  | 10 M5.Xlarge | 1 hours 30 mins |
+| Daily Airflow Fact Table load | macbook & AWS Redshift COPY | 17 mins |
 
-As the volume of data increases, some simple adjustments can be made after consideration of cost.  
+
+## Future Considerations
+
+As the volume of data increases, some simple adjustments can be made and balanced with a consideration of cost.  
 
 - Color Classification - Initial data growth can here can handled with more machines on the cluster. Should the cost of this begin to out way the value, a decision could be made to run this operation less frequently.
 
@@ -490,3 +510,33 @@ As the volume of data increases, some simple adjustments can be made after consi
 
 - Elasticsearch - 180 days worth of elasticsearch store could not be worth the price for the business. If the data increased 10 fold, a decision could be made to reduce the term of data available in the search. 
 
+Should the website which accesses this data model increase in traffic, some adjustments can be made to insure availabilty and low latency. 
+
+- Increase the number of nodes in the Elasticsearch cluster and create replicas in additional AWS availabity zones
+
+- Increase the number of nodes in the Redshift cluster and create replicas in additional AWS availabity zones
+
+Should the business require this dataset to also supply data to a dashboard, the first logical addition would be to aggregate our users into a single daily metric.  Number of posts, followers, and median engagement across the platform would create a useful dashboard for the business. 
+
+--- 
+
+## Next Steps
+
+This Udacity project will be the foundation of a more robust data pipeline. 
+
+**Add NLP and Tensorflow**
+
+The company has built a recommendation system that blends a Natural Language Processing vector built from a users captions with a Tensorflow image classification model built to classify social media image types. This pipeline will be enhanced further to return user vectors for each on a weekly basis. 
+
+**Refactor Color Kmeans** 
+
+Currently this process is viable for the given data, but there are likely steps to speed up the computations, reduce network traffic, and limit shuffling in Spark
+
+
+---
+**Credited Resources** 
+
+In addition to the [Udacity Data Engineering Nanodegree course](https://www.udacity.com/course/data-engineer-nanodegree--nd027), the following resources were used to create this data pipeline. 
+
+- Building a Batch Data Pipeline by Emma Tang - https://www.youtube.com/watch?v=Rm3_rDPTQgE
+- Ingest Streaming Data into ElasticSearch from S3 - https://www.youtube.com/watch?v=Ysd9tWuhE8g
