@@ -34,5 +34,11 @@ CREATE TABLE public.history
 	doc_count int,
 	fol_avg float,
 	eng_avg float,
-	color varchar(1024)
+	colors varchar(1024),
+);
+
+CREATE TABLE public.color
+(
+	igId varchar(256),
+	colors varchar(512),
 );
