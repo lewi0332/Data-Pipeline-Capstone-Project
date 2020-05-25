@@ -17,6 +17,7 @@ class StageToRedshiftOperator(BaseOperator):
                  s3_key="",
                  region="",
                  file_type="json",
+                 redshift_role="",
                  delimiter=",",
                  ignore_headers=1,
                  json_path='auto',
@@ -30,6 +31,7 @@ class StageToRedshiftOperator(BaseOperator):
         self.s3_key = s3_key
         self.region = region
         self.file_type = file_type
+        self.redshift_role = redshift_role
         self.delimiter = delimiter
         self.ignore_headers = ignore_headers
         self.json_path = json_path
@@ -48,7 +50,7 @@ class StageToRedshiftOperator(BaseOperator):
         self.log.info("Copying data from S3 to Redshift")
         rendered_key = self.s3_key.format(**context)
         self.log.info(f"Rendered key: {rendered_key}")
-
+        self.log.info(f"Role for Redshift Parquet: {self.redshift_role}")
         s3_path = "s3://" + self.s3_bucket + rendered_key
         self.log.info(f"Retrieving data from {s3_path}")
         if self.file_type.lower() == 'json':
@@ -72,6 +74,12 @@ class StageToRedshiftOperator(BaseOperator):
                          FORMAT AS CSV \
                          IGNOREHEADER {self.ignore_headers}\
                          DELIMITER '{self.delimiter}';")
+        elif self.file_type.lower() == 'parquet':
+            redshift.run(f"\
+                         COPY {self.table} \
+                         FROM '{s3_path}'\
+                         IAM_ROLE '{self.redshift_role}'\
+                         FORMAT AS PARQUET;")
         else:
             self.log.info("Unkown file format in S3")
             raise
