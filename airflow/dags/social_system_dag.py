@@ -5,7 +5,6 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators import StageToRedshiftOperator
 from airflow.operators import GetElasticsearchData
 from airflow.operators import LoadFactOperator
-# from airflow.operators import LoadDimensionOperator
 from airflow.operators import DataQualityOperator
 from helpers import SqlQueries
 
@@ -39,7 +38,7 @@ default_args = {
 
 dag = DAG('social-system-dag',
           default_args=default_args,
-          description='Load and transform data in Redshift with Airflow',
+          description='Transform and Load data to Redshift with Airflow',
           schedule_interval='@daily',
           max_active_runs=1,
           )
@@ -65,7 +64,7 @@ get_ES_data = GetElasticsearchData(
     aws_credentials_id="aws_credentials",
     es_host="search-social-system-kkehzvprsvgkfisnfulapobkpm.us-east-1.es.amazonaws.com",
     es_index="instagram_graph_posts",
-    days=90,
+    days=60,
     region='us-east-1',
     service_type='es',
 
