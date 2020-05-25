@@ -44,7 +44,6 @@ def indexDocElement(es_Url, awsauth, docData):
     """
     try:
         headers = {"Content-Type": "application/json"}
-        # headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
         resp = requests.put(es_Url, auth=awsauth,
                             headers=headers, json=docData)
         print(resp.content)
@@ -64,7 +63,7 @@ def indexDocElement(es_Url, awsauth, docData):
 def lambda_handler(event, context):
     credentials = boto3.Session().get_credentials()
 
-    # Set up connection to S3 bucket with raw json
+    # Set up connection to S3 bucket where raw json is stored
     s3 = boto3.client('s3')
 
     # set up connection to AWS Elasticsearch
@@ -89,11 +88,11 @@ def lambda_handler(event, context):
         logger.error(
             'ERROR: Unable able to GET object:{0} from S3 Bucket:{1}. Verify object exists.'.format(key, bucket))
 
-    # .replace("'", "") #.replace("\\n", " ")
+    # Read object from event
     body = obj['Body'].read().decode("utf-8")
     logger.info('SUCCESS: Retreived object from S3')
 
-    # Create document headers
+    # Create elasticsearch document headers
     docData = {}
     docData['objectKey'] = str(key)
     docData['createdDate'] = str(obj['LastModified'])
@@ -103,12 +102,13 @@ def lambda_handler(event, context):
     # parsing content before sending to Elasticsearch
     temp = json.loads(body)
 
-    # load images to S3
+    # Load image to S3 for future processing
     image = temp['profile_picture_url']
     ext = re.search(r'\.\w{3,4}(?=\?)', image).group()
     img_key = 'instagram_graph_image_store/' + \
         str(temp['id']) + '/' + "profile" + ext
 
+    # Check for existing profile image
     response = s3.list_objects_v2(
         Bucket=bucket,
         Prefix=img_key,
@@ -121,6 +121,7 @@ def lambda_handler(event, context):
         logger.info(
             f"Found the file {img_key} already in S3")
 
+    # Remove uneeded columns before sending to Elasticsearch
     temp.pop("ig_id", None)
     temp.pop("email_contacts", None)
     temp.pop("phone_call_clicks", None)
@@ -129,6 +130,7 @@ def lambda_handler(event, context):
     temp.pop("website_clicks", None)
     temp.pop("profile_views", None)
 
+    # Add new image URL to ES document
     temp['profile_picture'] = 'https://social-system-test.s3.amazonaws.com/' + img_key
 
     # package up the document data
