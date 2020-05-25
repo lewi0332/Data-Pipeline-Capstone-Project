@@ -34,6 +34,14 @@ logger.setLevel(logging.INFO)
 
 
 def indexDocElement(es_Url, awsauth, docData):
+    """
+    Loads completed document to Elasticsearch index.
+
+    PARAMS:
+    es_url - Elasticsearch Url for PUT requests
+    awsauth - AWS credentials for Elasticsearch
+    docData - formated dict like object to update elasticsearch record. 
+    """
     try:
         headers = {"Content-Type": "application/json"}
         # headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
@@ -56,9 +64,16 @@ def indexDocElement(es_Url, awsauth, docData):
 def store_images(temp, bucket):
     """
     Stores images from media url to S3 bucket. 
-    Checks for image in S3, load it if absent
-    Checks for children Media urls and saves as such: 
+    Checks for existing image in S3, loads it if absent
+    Then checks if "children" Media urls are present and saves as such: 
     17841401753941377 / 10010784827803388 / original.jpg, 17870925466585765.jpg, 18015701020271224.jpg
+
+    PARAMS:
+    temp - dictionary object loaded from from S3 with post data
+    bucket - bucket to store loaded images
+
+    RETURNS: 
+    New url of media object stored on S3
     """
 
     s3 = boto3.client('s3')
