@@ -69,7 +69,8 @@ class GetElasticsearchData(BaseOperator):
             "aggs": {
                 "id": {
                     "terms": {
-                        "field": "content.owner_id"
+                        "field": "content.owner_id",
+                        "size": 10000
                     },
                     "aggregations": {
                         "eng_avg": {
