@@ -148,7 +148,7 @@ def lambda_handler(event, context):
         key = urllib.parse.unquote_plus(
             event['Records'][0]['s3']['object']['key'])
 
-        # Get document (obj) form S3
+        # Get document (obj) from S3
         obj = s3.get_object(Bucket=bucket, Key=key)
 
     except Exception as e:
@@ -156,7 +156,7 @@ def lambda_handler(event, context):
         logger.error(
             'ERROR: Unable able to GET object:{0} from S3 Bucket:{1}. Verify object exists.'.format(key, bucket))
 
-    # .replace("'", "") #.replace("\\n", " ")
+    # Create read object
     body = obj['Body'].read().decode("utf-8")
     logger.info('SUCCESS: Retreived object from S3')
 
@@ -167,7 +167,7 @@ def lambda_handler(event, context):
     docData['content_type'] = str(obj['ContentType'])
     docData['content_length'] = str(obj['ContentLength'])
 
-    # parsing content before sending to Elasticsearch
+    # Parsing content before sending to Elasticsearch
     temp = json.loads(body)
 
     # items not needed in ES.
@@ -185,7 +185,7 @@ def lambda_handler(event, context):
     try:
         temp['followers'] = temp['owner']['followers_count']
     except Exception as e:
-        print(f'Failed to set followers. {e}')
+        logger.info(f'Failed to set followers. {e}')
         temp['followers'] = -1
     temp.pop('owner')
 
