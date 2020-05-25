@@ -134,3 +134,4 @@ dmypy.json
 notes.md
 lambda/s3Stats-to-ES-lambda/.vscode/settings.json
 lambda/s3Posts-to-ES-lambda/.vscode/settings.json
+early_builds/
