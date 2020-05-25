@@ -21,9 +21,9 @@ class SqlQueries:
                 sc.colors
             FROM
                 staging_users as su 
-            FULL JOIN
+            LEFT JOIN
                 staging_aggregations as sa ON su.id = sa.id
-            FULL JOIN 
+            LEFT JOIN 
                 staging_color as sc on su.id = sc.igId
             GROUP
                 BY 1,5,6,7,8  ORDER BY 1;
