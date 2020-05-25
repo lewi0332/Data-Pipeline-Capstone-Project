@@ -131,3 +131,4 @@ dmypy.json
 *.cfg
 .DS_Store
 .vscode/settings.json
+notes.md
