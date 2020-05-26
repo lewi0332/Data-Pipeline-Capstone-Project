@@ -502,21 +502,40 @@ Response:
 
 ## Future Considerations
 
-As the volume of data increases, some simple adjustments can be made and balanced with a consideration of cost.  
+As the volume of data increases, some simple adjustments can be made and balanced with a consideration of cost. 
 
-- Color Classification - Initial data growth can here can handled with more machines on the cluster. Should the cost of this begin to out way the value, a decision could be made to run this operation less frequently.
+Should the data increase 10x (expected in two years):
 
-- Lambda Functions - Initial data growth can be handled by raising the aws limit of concurrent executions. When the cost of this becomes prohibitive, the job can be moved to a Spark cluster. However, in order to create efficiency in the process, the current API client storing the Json files could be refactored to store only updated files in a staging folder. After the subsequent Spark task is finished transforming the data and loading it into the search store, it could move the json file from the staging area to the users folder. 
+- Color Classification - Initial data growth can here can handled with more machines on the cluster. Should the cost of this begin to outweigh the value of the data, a decision could be made to run this operation less frequently.
 
-- Elasticsearch - 180 days worth of elasticsearch store could not be worth the price for the business. If the data increased 10 fold, a decision could be made to reduce the term of data available in the search. 
+- Lambda Functions - Initial data growth can be handled by raising the aws limit of concurrent executions. When the cost of this becomes prohibitive, the job can be moved to a Spark cluster. However, in order to create efficiency in the process, the current API client storing the Json files should be refactored to store only updated files in a staging folder. After the subsequent Spark task is finished transforming the data and loading it into the search store, it could move the json file from the staging area to the user's folder. 
 
-Should the website which accesses this data model increase in traffic, some adjustments can be made to insure availabilty and low latency. 
+- Elasticsearch - 180 days worth of elasticsearch store could become expensive for the business. If the data increased 10 fold, a decision could be made to reduce the term of data available in the search. 
+
+Should the data increase 100x:
+
+- The first concern will be the volume of data in the "post" index of Elasticsearch. This scenario would be collecting 2.5 million posts per day, and 6 months of posts could be over 400 million. While this type of database can be sharded and distributed, the cost of adding more nodes and the potential latency of the response could force the current 6 month policy to change to a shorter time window.
+
+- Further concern will be the ingestion of the data. AWS lambda functions could handle the volume, however the cost could be a concern given the average run time of nearly 2 seconds, with some invocations running nearly 4-5 seconds if the post contains many images. Given the nature of the data, our "user" and "history" tables will not grow exponentially like the "post" table. Writing data to redshift, even at 100x the current state will not pose an issue. However, writing the post index in elasticsearch will need to be considered. Given that the database is distributed and eventually consistent, the load balancer and additional nodes should easily allow for writes to be spread across the cluster.
+
+- Color Classification (and soon Tensorflow) on images will also need to be adjusted at this volume. Most likely, only a portion of the accounts will be updated each week. This allows for new users to have their images processed within a week, but does not require the entire database to be updated every week.
+
+- Data Lake storage should be optimized in this scenario as well. AWS S3 has a very simple configuration to handle archiving of data. Quite simply we will set an expiration date on each folder. Each file older than the expiration will be automatically converted to S3's Glacier storage, a far cheaper storage option with more expensive reads. Additionally, in future analytics, AWS Glue and Athena services will ignore these files when reading. 
+
+The major components of this pipeline run daily, but if someone wished to set a specific time, the Airflow dag schedule could be changed from "@daily" to "0 7 * * *".  
+
+If this dag or other processes were to fail the company is in a fortunate position that subsequent runs are better than a backup, as they contain updates to the posts. Unless our pipeline fails 25 days in a row, we would not likely loose data. However, to catch these errors we can set notfications in Airflow to email on failures or tasks running too long. Additionally, AWS lambda can notify of any significant errors on the lamda executions. Instagram's user insight api can return daily follows and reach counts in a single response, if many days are missing, a new API can be written that returns more than one day to allow for the company to rebuild the historical timeline on the users profile page. 
+
+Should the business require this dataset to also supply data to a dashboard, the first logical addition would be to aggregate our users into a single daily metric.  Number of posts, followers, and median engagement across the platform would create a useful dashboard for business intelligence. 
+
+
+Currently this data model is accessed by the website thousands of times per day. If the site increases traffic, some adjustments can be made to insure availabilty and low latency. 
 
 - Increase the number of nodes in the Elasticsearch cluster and create replicas in additional AWS availabity zones
 
 - Increase the number of nodes in the Redshift cluster and create replicas in additional AWS availabity zones
 
-Should the business require this dataset to also supply data to a dashboard, the first logical addition would be to aggregate our users into a single daily metric.  Number of posts, followers, and median engagement across the platform would create a useful dashboard for the business. 
+
 
 --- 
 
