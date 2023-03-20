@@ -25,7 +25,7 @@ globalVars['esIndexPrefix'] = "/instagram_graph_posts/"
 globalVars['esIndexDocType'] = "_doc"
 globalVars['esHosts'] = {
     'prod': 'something more secure here',
-    'aws': 'https://search-social-system-kkehzvprsvgkfisnfulapobkpm.us-east-1.es.amazonaws.com'
+    'aws': 'https://es_id_name.us-east-1.es.amazonaws.com'
 }
 
 # Initialize Logger
@@ -125,7 +125,7 @@ def store_images(temp, bucket):
     else:
         logger.info(
             f"Found the file {img_key + '/original.jpg'} already in S3")
-    return 'https://social-system-test.s3.amazonaws.com/' + img_key + '/original' + ext
+    return 'https://_images_host_id_.s3.amazonaws.com/' + img_key + '/original' + ext
 
 
 def lambda_handler(event, context):

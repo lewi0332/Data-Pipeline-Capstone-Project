@@ -25,7 +25,7 @@ globalVars['esIndexPrefix'] = "/instagram_graph_users/"
 globalVars['esIndexDocType'] = "_doc"
 globalVars['esHosts'] = {
     'prod': 'future ES store',
-    'aws': 'https://search-social-system-kkehzvprsvgkfisnfulapobkpm.us-east-1.es.amazonaws.com'
+    'aws': 'https://es_id_name.us-east-1.es.amazonaws.com'
 }
 
 # Initialize Logger
@@ -131,7 +131,7 @@ def lambda_handler(event, context):
     temp.pop("profile_views", None)
 
     # Add new image URL to ES document
-    temp['profile_picture'] = 'https://social-system-test.s3.amazonaws.com/' + img_key
+    temp['profile_picture'] = 'https://_images_host_id_.s3.amazonaws.com/' + img_key
 
     # package up the document data
     docData['content'] = temp

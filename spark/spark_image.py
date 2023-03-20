@@ -201,7 +201,7 @@ if __name__ == "__main__":
 
     # TODO Using repartition again here or coalesce might limit shuffling but force the work to a single node.
     final.write.mode("overwrite").save(
-        "s3a://social-system-test/spark/output/")
+        "s3a://_images_host_id_/spark/output/")
 
     # TODO
     # possibly figure out how to submit as an actual list or dict.

@@ -111,7 +111,7 @@ class GetElasticsearchData(BaseOperator):
                           aws_access_key_id=credentials.access_key,
                           aws_secret_access_key=credentials.secret_key)
 
-        response = s3.put_object(Bucket='social-system-test',
+        response = s3.put_object(Bucket='_images_host_id_',
                                  Key='temp/post_agg_{run_id}.csv'.format(
                                      **context),
                                  Body=csv_buffer.getvalue()

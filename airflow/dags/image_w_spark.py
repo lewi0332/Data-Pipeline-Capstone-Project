@@ -26,7 +26,7 @@ dag = airflow.DAG(
 
 # https://docs.aws.amazon.com/emr/latest/APIReference/API_RunJobFlow.html
 default_emr_settings = {"Name": "image_classification",
-                        "LogUri": "s3://social-system-test/spark/logs/",
+                        "LogUri": "s3://_images_host_id_/spark/logs/",
                         "ReleaseLabel": "emr-6.0.0",
                         "Instances": {
                             "InstanceGroups": [
@@ -58,7 +58,7 @@ default_emr_settings = {"Name": "image_classification",
                             {
                                 'Name': 'install libraries to local',
                                 'ScriptBootstrapAction': {
-                                    'Path': 's3://social-system-test/spark/bootstrap.sh'
+                                    'Path': 's3://_images_host_id_/spark/bootstrap.sh'
                                 }
                             }
                         ],
@@ -99,7 +99,7 @@ def issue_step(name, args):
 def check_data_exists():
     logging.info('checking that data exists in s3')
     source_s3 = S3Hook(aws_conn_id='aws_credentials')
-    prefixes = source_s3.list_prefixes(bucket_name='social-system-test',
+    prefixes = source_s3.list_prefixes(bucket_name='_images_host_id_',
                                        prefix='/instagram_graph_image_store/',
                                        max_items=1)
     logging.info('keys {}'.format(prefixes))
@@ -156,7 +156,7 @@ send_colors_to_redshift = StageToRedshiftOperator(
     table="staging_color",
     conn_id="redshift",
     aws_credentials_id="aws_credentials",
-    s3_bucket="social-system-test/",
+    s3_bucket="_images_host_id_/",
     s3_key="spark/output/"
 )
 

@@ -385,7 +385,7 @@ Response:
       "id" : 9991, <- Instagram post id>
       "like_count" : 166, <- Number of likes on this post>
       "media_type" : "CAROUSEL_ALBUM", <- Type of post>
-      "media_url" : "https://social-system-test.s3.amazonaws.com/instagram_graph_image_store/1/9991/original.jpg", <- Url where PRIMARY post image can be found>
+      "media_url" : "https://_images_host_id_.s3.amazonaws.com/instagram_graph_image_store/1/9991/original.jpg", <- Url where PRIMARY post image can be found>
       "permalink" : "https://www.instagram.com/p/fdjksafjdlsa/", <- Original link to Instagram post>
       "shortcode" : "fdjksafjdlsa", <- unique code slug from instagram>
       "timestamp" : "2020-03-09T12:15:52+0000", <- Date when post was created>
@@ -446,7 +446,7 @@ Response:
       "follows_count" : 1081,  <- Number of accounts the user follows on created date>
       "media_count" : 891, <- Total pieces of media on IG account>
       "name" : "Public facing name",
-      "profile_picture_url" : "https://social-system-test.s3.amazonaws.com/instagram_graph_image_store/1/profile.jpg", <- Profile image URL>
+      "profile_picture_url" : "https://_images_host_id_.s3.amazonaws.com/instagram_graph_image_store/1/profile.jpg", <- Profile image URL>
       "username" : "udacity",
       "website" : "www.udacity.com",
       "impressions" : 422, <- total impressions across all media pieces that day>
@@ -492,12 +492,12 @@ Response:
 --- 
 ## Current Pipeline Performance 
 
-| 7241 test accounts | resources | time |
-|--- |--- |---|
-| Lambda Post Update       | 3-5K concurrent    | ~1558ms per post |
-| Lambda User Update       | 300 concurrent    | ~877ms per user |
-| CWeekly Airflow Color Classification Spark  | 10 M5.Xlarge | 1 hours 30 mins |
-| Daily Airflow Fact Table load | macbook & AWS Redshift COPY | 17 mins |
+| 7241 test accounts                         | resources                   | time             |
+| ------------------------------------------ | --------------------------- | ---------------- |
+| Lambda Post Update                         | 3-5K concurrent             | ~1558ms per post |
+| Lambda User Update                         | 300 concurrent              | ~877ms per user  |
+| CWeekly Airflow Color Classification Spark | 10 M5.Xlarge                | 1 hours 30 mins  |
+| Daily Airflow Fact Table load              | macbook & AWS Redshift COPY | 17 mins          |
 
 
 ## Future Considerations

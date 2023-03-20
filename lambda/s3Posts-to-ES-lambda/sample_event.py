@@ -20,7 +20,7 @@ event = {
                 "s3SchemaVersion": "1.0",
                 "configurationId": "828aa6fc-f7b5-4305-8584-487c791949c1",
                 "bucket": {
-                    "name": "social-system-test",
+                    "name": "_images_host_id_",
                     "ownerIdentity": {
                         "principalId": "A3I5XTEXAMAI3E"
                     },
