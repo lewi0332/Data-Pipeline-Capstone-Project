@@ -9,7 +9,7 @@ DWH_DB_USER = config.get("DWH", "DWH_DB_USER")
 DWH_DB_PASSWORD = config.get("DWH", "DWH_DB_PASSWORD")
 DWH_PORT = config.get("DWH", "DWH_PORT")
 
-conn = psycopg2.connect(host='socialsystem.c6ilokaakqwl.us-east-1.redshift.amazonaws.com',
+conn = psycopg2.connect(host=REDSHIFT_PATH,
                         dbname=DWH_DB, user=DWH_DB_USER, password=DWH_DB_PASSWORD, port=DWH_PORT)
 
 cur = conn.cursor()
