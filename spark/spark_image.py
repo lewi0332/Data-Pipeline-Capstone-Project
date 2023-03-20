@@ -8,7 +8,7 @@ from sklearn.cluster import KMeans
 from pyspark.sql.functions import col, pandas_udf, udf, struct, PandasUDFType, split
 from pyspark.sql.types import *
 
-IMAGES_PATH = 's3a://social-system-test/instagram_graph_image_store/*/'
+IMAGES_PATH = 'yourpathENVVAR'
 
 
 def color_many_classify(image, shape):
